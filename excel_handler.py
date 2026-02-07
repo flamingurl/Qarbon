@@ -5,10 +5,12 @@ import os
 
 class ExcelHandler:
     def __init__(self, workers_file='data/workers.xlsx', tasks_file='data/tasks.xlsx'):
-        self.workers_file = workers_file
-        self.tasks_file = tasks_file
-        self._ensure_files_exist()
-
+    # This finds the absolute path to your current folder
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    self.workers_file = os.path.join(base_dir, 'data', 'workers.xlsx')
+    self.tasks_file = os.path.join(base_dir, 'data', 'tasks.xlsx')
+    self._ensure_files_exist()
+    
     def _ensure_files_exist(self):
         os.makedirs('data', exist_ok=True)
         if not os.path.exists(self.workers_file):
