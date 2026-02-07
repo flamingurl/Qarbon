@@ -1,205 +1,112 @@
-/* Qarbon Aerospace - Enterprise Task Manager Theme */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
+/* Import professional Inter font directly from Google */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
 
 :root {
-    --navy-dark: #0f172a;
-    --navy-light: #1e293b;
-    --accent-blue: #3b82f6;
-    --success-green: #10b981;
-    --danger-red: #f43f5e;
-    --bg-gray: #f8fafc;
-    --border-color: #e2e8f0;
-    --text-slate: #475569;
+    --navy: #0f172a;
+    --accent: #3b82f6;
+    --success: #10b981;
+    --bg: #f1f5f9; /* Soft industrial gray background */
+    --card: #ffffff;
+    --border: #e2e8f0;
 }
 
 body {
-    font-family: 'Inter', sans-serif;
-    background-color: var(--bg-gray);
-    color: var(--navy-dark);
+    font-family: 'Inter', -apple-system, sans-serif;
+    background-color: var(--bg); /* This fixes the "white background" issue */
+    color: var(--navy);
     margin: 0;
-    padding: 0;
-    line-height: 1.6;
-}
-
-/* Professional Header */
-header {
-    background: var(--navy-dark);
-    color: white;
-    padding: 2rem 0;
-    text-align: center;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-    margin-bottom: 3rem;
-}
-
-h1 {
-    margin: 0;
-    font-weight: 700;
-    letter-spacing: -1px;
-    font-size: 1.8rem;
-    text-transform: uppercase;
+    padding: 40px 0;
 }
 
 .container {
-    max-width: 1200px;
+    max-width: 1100px;
     margin: 0 auto;
     padding: 0 20px;
 }
 
-/* Elegant Section Containers */
+header {
+    background: var(--navy);
+    color: white;
+    padding: 30px 0;
+    margin-top: -40px;
+    margin-bottom: 40px;
+    text-align: center;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+h1 { font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin: 0; }
+
 .manager-section {
-    background: white;
+    background: var(--card);
     border-radius: 12px;
-    padding: 2rem;
-    margin-bottom: 2rem;
-    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
-    border: 1px solid var(--border-color);
+    padding: 30px;
+    margin-bottom: 30px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    border: 1px solid var(--border);
 }
 
 h2 {
-    font-size: 1.1rem;
-    color: var(--navy-light);
+    font-size: 1rem;
     text-transform: uppercase;
-    letter-spacing: 1px;
-    margin-top: 0;
-    margin-bottom: 1.5rem;
-    border-left: 4px solid var(--accent-blue);
-    padding-left: 1rem;
+    color: #64748b;
+    border-left: 4px solid var(--accent);
+    padding-left: 15px;
+    margin-bottom: 20px;
 }
 
-/* Modern Grid & Cards */
+/* Modern Inputs */
+input, select {
+    padding: 12px 15px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 0.95rem;
+    margin-bottom: 15px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* Elegant Buttons */
+.btn-primary {
+    background: var(--navy);
+    color: white;
+    font-weight: 600;
+    padding: 14px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    width: 100%;
+    transition: all 0.2s;
+}
+
+.btn-primary:hover { background: var(--accent); }
+
+.btn-complete {
+    background: var(--success);
+    color: white;
+    padding: 10px;
+    border: none;
+    border-radius: 6px;
+    width: 100%;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+/* Grid for Cards */
 .tasks-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-    gap: 1.5rem;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
 }
 
 .task-card {
-    background: #fff;
-    border: 1px solid var(--border-color);
+    background: white;
+    border: 1px solid var(--border);
     border-radius: 10px;
-    padding: 1.5rem;
-    position: relative;
-    transition: all 0.2s ease;
+    padding: 20px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
 }
 
-.task-card:hover {
-    border-color: var(--accent-blue);
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-}
-
-.urgency-indicator {
-    font-size: 0.7rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    margin-bottom: 0.5rem;
-    display: block;
-}
-
-/* Form Styling */
-.form-group {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1rem;
-}
-
-input, select {
-    padding: 0.75rem 1rem;
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    font-size: 0.95rem;
-    margin-bottom: 1rem;
-    transition: border-color 0.2s;
-    background: #fdfdfd;
-}
-
-input:focus, select:focus {
-    outline: none;
-    border-color: var(--accent-blue);
-    background: #fff;
-}
-
-/* Action Buttons */
-.btn-primary {
-    background-color: var(--navy-dark);
-    color: white;
-    border: none;
-    padding: 0.8rem 1.5rem;
-    border-radius: 8px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: background 0.2s;
-    font-size: 0.9rem;
-}
-
-.btn-primary:hover {
-    background-color: var(--accent-blue);
-}
-
-.btn-complete {
-    background: var(--success-green);
-    color: white;
-    width: 100%;
-    margin-top: 1rem;
-    border: none;
-    padding: 0.6rem;
-    border-radius: 6px;
-    font-weight: 600;
-    cursor: pointer;
-}
-
-.btn-self {
-    background: transparent;
-    border: 1px solid var(--accent-blue);
-    color: var(--accent-blue);
-    padding: 0.4rem 0.8rem;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 0.8rem;
-}
-
-.btn-self:hover {
-    background: var(--accent-blue);
-    color: white;
-}
-
-/* Table styling for Workers */
-table {
-    width: 100%;
-    border-collapse: collapse;
-}
-
-th {
-    text-align: left;
-    color: var(--text-slate);
-    font-size: 0.8rem;
-    text-transform: uppercase;
-    padding: 1rem;
-    border-bottom: 2px solid var(--bg-gray);
-}
-
-td {
-    padding: 1rem;
-    border-bottom: 1px solid var(--bg-gray);
-    font-size: 0.95rem;
-}
-
-.del-btn {
-    color: var(--danger-red);
-    background: transparent;
-    border: none;
-    cursor: pointer;
-    font-weight: 600;
-    font-size: 0.75rem;
-}
-
-/* Archive List */
-.completed-item {
-    display: flex;
-    justify-content: space-between;
-    padding: 0.8rem 1.2rem;
-    background: var(--bg-gray);
-    border-radius: 8px;
-    margin-bottom: 0.6rem;
-    font-size: 0.9rem;
-    border-left: 4px solid var(--text-slate);
-}
+/* Table styling for Registered Personnel */
+table { width: 100%; border-collapse: collapse; }
+th { text-align: left; color: #64748b; font-size: 0.8rem; text-transform: uppercase; padding: 12px; border-bottom: 2px solid var(--bg); }
+td { padding: 12px; border-bottom: 1px solid var(--bg); }
