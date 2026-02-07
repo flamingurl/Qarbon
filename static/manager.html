@@ -7,19 +7,31 @@
 </head>
 <body>
     <div class="container">
-        <h1>Qarbon Aerospace Task Assignment Manager</h1>
+        <header>
+            <h1>Qarbon Aerospace Task Assignment Manager</h1>
+        </header>
         
         <div class="manager-section">
-            <h2>AI Auto-Assignment (One per Person)</h2>
+            <h2>AI Auto-Assignment</h2>
             <button id="assignBtn" class="btn-primary">Optimize Shift Assignments</button>
         </div>
 
         <div class="manager-section">
-            <h2>Add Task</h2>
+            <h2>Register Personnel</h2>
+            <form id="workerForm">
+                <input type="text" id="workerName" placeholder="Worker Full Name" required>
+                <input type="text" id="workerRole" placeholder="Job Title (e.g., Senior Machinist)" required>
+                <input type="text" id="workerSchedule" placeholder="Shift Schedule (e.g., 08:00 - 17:00)" required>
+                <button type="submit" class="btn-primary" style="background:#10b981">Add Worker to System</button>
+            </form>
+        </div>
+
+        <div class="manager-section">
+            <h2>Add New Task</h2>
             <form id="taskForm">
                 <input type="text" id="desc" placeholder="Task description" required>
                 <input type="number" id="urg" placeholder="Urgency (1-5)" min="1" max="5" required>
-                <button type="submit" class="btn-primary">Submit Task</button>
+                <button type="submit" class="btn-primary">Submit Task for Assignment</button>
             </form>
         </div>
 
@@ -29,7 +41,7 @@
         </div>
 
         <div class="manager-section">
-            <h2>Registered Personnel</h2>
+            <h2>Registered Personnel Overview</h2>
             <div id="workersOverview"></div>
         </div>
 
@@ -49,25 +61,30 @@
             
             document.getElementById('activeTasks').innerHTML = tasks.filter(t => !t.date_completed).map(t => `
                 <div class="task-card">
-                    <button class="del-small" onclick="deleteItem('task', ${t.row_number})">X</button>
+                    <button class="del-small" onclick="deleteItem('task', ${t.row_number})">Delete</button>
+                    <div class="urgency-label" style="color:${getUrgencyColor(t.urgency)}">Priority ${t.urgency}</div>
                     <h3>${t.description}</h3>
-                    <p>Assignee: ${t.assigned_to || 'Unassigned'}</p>
-                    <button class="btn-complete" onclick="markComplete(${t.row_number})">Complete</button>
+                    <p>Assignee: <b>${t.assigned_to || 'Unassigned'}</b></p>
+                    <button class="btn-complete" onclick="markComplete(${t.row_number})">Mark as Completed</button>
                 </div>`).join('');
 
             document.getElementById('completedTasks').innerHTML = tasks.filter(t => t.date_completed).map(t => `
-                <div class="completed-item"><span>${t.description} (${t.assigned_to})</span><small>${t.date_completed}</small></div>`).join('');
+                <div class="completed-item">
+                    <span><b>DONE:</b> ${t.description} (Worker: ${t.assigned_to})</span>
+                    <small>Completed At: ${t.date_completed} EST</small>
+                </div>`).join('');
 
             document.getElementById('workersOverview').innerHTML = `<table>
                 <thead><tr><th>Name</th><th>Role</th><th>Actions</th></tr></thead>
                 <tbody>${workers.map(w => `
                     <tr><td>${w.name}</td><td>${w.job_title}</td>
                     <td><button onclick="assignSelf('${w.name}')" class="btn-self">Assign Task</button>
-                    <button onclick="deleteItem('worker', '${w.name}')" class="del-small">Remove</button></td></tr>`).join('')}
+                    <button onclick="deleteItem('worker', '${w.name}')" class="del-small-table">Remove</button></td></tr>`).join('')}
                 </tbody></table>`;
         }
 
         async function deleteItem(type, id) {
+            if(!confirm(`Are you sure you want to remove this ${type}?`)) return;
             await fetch(`${API_URL}/delete-${type}/${id}`, { method: 'DELETE' });
             loadData();
         }
@@ -97,13 +114,35 @@
                 headers: {'Content-Type': 'application/json'}, 
                 body: JSON.stringify({description: document.getElementById('desc').value, urgency: document.getElementById('urg').value}) 
             });
+            e.target.reset();
+            loadData();
+        };
+
+        document.getElementById('workerForm').onsubmit = async (e) => {
+            e.preventDefault();
+            await fetch(`${API_URL}/add-worker`, { 
+                method: 'POST', 
+                headers: {'Content-Type': 'application/json'}, 
+                body: JSON.stringify({
+                    name: document.getElementById('workerName').value,
+                    job_title: document.getElementById('workerRole').value,
+                    date_working: document.getElementById('workerSchedule').value
+                }) 
+            });
+            e.target.reset();
             loadData();
         };
 
         document.getElementById('assignBtn').onclick = async () => {
+            document.getElementById('assignBtn').innerText = "AI Optimizing Shift...";
             await fetch(`${API_URL}/assign-tasks`, { method: 'POST' });
+            document.getElementById('assignBtn').innerText = "Optimize Shift Assignments";
             loadData();
         };
+
+        function getUrgencyColor(u) {
+            return ['#10b981', '#84cc16', '#f59e0b', '#f97316', '#ef4444'][u-1];
+        }
 
         loadData();
     </script>
