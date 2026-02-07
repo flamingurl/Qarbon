@@ -13,16 +13,20 @@ excel_handler = ExcelHandler()
 ai_engine = AIEngine(os.getenv("OPENAI_API_KEY"))
 
 @app.route('/')
-def route_index(): return send_from_directory(app.static_folder, 'index.html')
+def route_index(): 
+    return send_from_directory(app.static_folder, 'index.html')
 
 @app.route('/manager')
-def route_manager(): return send_from_directory(app.static_folder, 'manager.html')
+def route_manager(): 
+    return send_from_directory(app.static_folder, 'manager.html')
 
 @app.route('/api/tasks', methods=['GET'])
-def get_tasks(): return jsonify(excel_handler.read_tasks())
+def get_tasks(): 
+    return jsonify(excel_handler.read_tasks())
 
 @app.route('/api/workers', methods=['GET'])
-def get_workers(): return jsonify(excel_handler.read_workers())
+def get_workers(): 
+    return jsonify(excel_handler.read_workers())
 
 @app.route('/api/add-worker', methods=['POST'])
 def add_worker():
@@ -53,20 +57,35 @@ def delete_worker(name):
 
 @app.route('/api/assign-tasks', methods=['POST'])
 def assign_bulk():
-    assignments = ai_engine.assign_tasks_one_per_person(excel_handler.read_workers(), excel_handler.read_tasks())
+    workers = excel_handler.read_workers()
+    tasks = excel_handler.read_tasks()
+    assignments = ai_engine.assign_tasks_one_per_person(workers, tasks)
     for name, rows in assignments.items():
-        if rows: excel_handler.assign_task_to_worker(rows[0], name)
+        if rows: 
+            excel_handler.assign_task_to_worker(rows[0], name)
     return jsonify({'success': True})
 
 @app.route('/api/assign-self', methods=['POST'])
 def assign_self():
-    name = request.json['worker_name']
-    tasks = [t for t in excel_handler.read_tasks() if not t['assigned_to'] and not t['date_completed']]
-    if tasks:
-        best = sorted(tasks, key=lambda x: x['urgency'], reverse=True)[0]
-        excel_handler.assign_task_to_worker(best['row_number'], name)
+    worker_name = request.json.get('worker_name')
+    workers = excel_handler.read_workers()
+    tasks = excel_handler.read_tasks()
+    
+    worker = next((w for w in workers if w['name'] == worker_name), None)
+    if not worker:
+        return jsonify({'success': False, 'message': 'Worker not found'})
+
+    available_tasks = [t for t in tasks if not t['assigned_to'] and not t['date_completed']]
+    
+    # AI determines if the worker is qualified for any available tasks
+    assignment = ai_engine.get_single_qualified_assignment(worker, available_tasks)
+    
+    if assignment and assignment.get('row_number'):
+        excel_handler.assign_task_to_worker(assignment['row_number'], worker_name)
         return jsonify({'success': True})
-    return jsonify({'success': False})
+    
+    return jsonify({'success': False, 'message': 'No qualified tasks found for this role'})
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=int(os.environ.get("PORT", 5000)))
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host='0.0.0.0', port=port)

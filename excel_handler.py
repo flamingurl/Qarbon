@@ -11,7 +11,7 @@ class ExcelHandler:
         self._ensure_files_exist()
 
     def _get_est_time(self):
-        # Render servers are UTC; this offsets to EST (UTC-5)
+        # Adjusts Render's UTC time to Eastern Standard Time
         return (datetime.utcnow() - timedelta(hours=5)).strftime('%m/%d/%Y %I:%M %p')
 
     def _ensure_files_exist(self):
