@@ -1,104 +1,128 @@
-font-size: 1rem;
-color: var(--text-muted);
-text-transform: uppercase;
-border-left: 4px solid var(--blue);
-padding-left: 1rem;
-margin-bottom: 1.5rem;
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+
+:root {
+    --navy: #0f172a;
+    --blue: #3b82f6;
+    --green: #10b981;
+    --red: #ef4444;
+    --gray-bg: #f1f5f9;
+    --border: #e2e8f0;
 }
 
- .form-group {
-     display: grid;
-     grid-template-columns: 1fr 1fr;
-     gap: 1.5rem;
- }
+* { box-sizing: border-box; }
 
- /* Status Badges */
- .status-badge {
-     font-size: 0.7rem;
-     font-weight: 800;
-     padding: 4px 10px;
-     border-radius: 4px;
-     letter-spacing: 0.5px;
- }
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: var(--gray-bg);
+    margin: 0;
+    padding: 0;
+    color: var(--navy);
+}
 
- .status-assigned { background: #fee2e2; color: #991b1b; }
- .status-unassigned { background: #dcfce7; color: #166534; }
+header {
+    background: var(--navy);
+    color: white;
+    padding: 40px 0;
+    text-align: center;
+    margin-bottom: 40px;
+}
 
- /* Grid & Cards */
- .tasks-grid {
-     display: grid;
-     grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-     gap: 1.5rem;
- }
+.container { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
 
- .task-card {
-     background: #fff;
-     border: 1px solid var(--border);
-     border-radius: 10px;
-     padding: 1.5rem;
-     position: relative;
- }
+.manager-section {
+    background: white;
+    padding: 30px;
+    border-radius: 12px;
+    margin-bottom: 30px;
+    border: 1px solid var(--border);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
 
- .urgency-indicator { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; }
+h2 {
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    color: #64748b;
+    border-left: 4px solid var(--blue);
+    padding-left: 15px;
+    margin-bottom: 25px;
+}
 
- /* Buttons & Inputs */
- input, select {
-     width: 100%;
-     padding: 0.8rem;
-     border: 1px solid var(--border);
-     border-radius: 8px;
-     margin-bottom: 1rem;
-     box-sizing: border-box;
- }
+/* Fix for the side-by-side layout */
+.form-row {
+    display: flex;
+    gap: 30px;
+    flex-wrap: wrap;
+}
 
- .btn-primary {
-     background: var(--navy);
-     color: white;
-     border: none;
-     padding: 1rem;
-     border-radius: 8px;
-     font-weight: 600;
-     cursor: pointer;
- }
+.form-row .manager-section { flex: 1; min-width: 300px; }
 
- .btn-complete {
-     background: var(--green);
-     color: white;
-     width: 100%;
-     border: none;
-     padding: 0.7rem;
-     border-radius: 6px;
-     font-weight: 600;
-     cursor: pointer;
-     margin-top: 1rem;
- }
+input {
+    width: 100%;
+    padding: 12px;
+    margin-bottom: 15px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+}
 
- .btn-self {
-     background: transparent;
-     border: 1px solid var(--blue);
-     color: var(--blue);
-     padding: 5px 10px;
-     border-radius: 4px;
-     font-weight: 600;
-     cursor: pointer;
-     font-size: 0.75rem;
- }
+/* Status Badges */
+.status-badge {
+    font-size: 0.7rem;
+    font-weight: 800;
+    padding: 5px 12px;
+    border-radius: 4px;
+}
 
- .del-small { color: var(--red); background: none; border: 1px solid var(--red); padding: 2px 6px; border-radius: 4px; font-size: 10px; cursor: pointer; float: right; }
- .del-btn-table { color: var(--red); background: none; border: none; font-size: 0.75rem; font-weight: bold; cursor: pointer; margin-left: 10px; }
+.badge-assigned { background: #fee2e2; color: #991b1b; }
+.badge-unassigned { background: #dcfce7; color: #166534; }
 
- /* Table */
- table { width: 100%; border-collapse: collapse; }
- th { text-align: left; font-size: 0.8rem; text-transform: uppercase; color: var(--text-muted); padding: 1rem; border-bottom: 2px solid var(--bg); }
- td { padding: 1rem; border-bottom: 1px solid var(--bg); font-size: 0.95rem; }
+/* Grid and Cards */
+.tasks-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
+}
 
- .completed-item {
-     display: flex;
-     justify-content: space-between;
-     background: #f8fafc;
-     padding: 1rem;
-     border-radius: 8px;
-     margin-bottom: 0.5rem;
-     font-size: 0.9rem;
-     border-left: 4px solid var(--text-muted);
- }
+.task-card {
+    border: 1px solid var(--border);
+    padding: 20px;
+    border-radius: 10px;
+    background: #fff;
+    position: relative;
+}
+
+.urgency-tag { font-weight: bold; font-size: 0.8rem; text-transform: uppercase; }
+
+/* Buttons */
+.btn-primary, .btn-success, .btn-complete {
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 12px;
+    width: 100%;
+    color: white;
+    transition: 0.2s;
+}
+
+.btn-primary { background: var(--navy); }
+.btn-success { background: var(--green); }
+.btn-complete { background: var(--green); margin-top: 15px; }
+
+.btn-action { background: none; border: 1px solid var(--blue); color: var(--blue); padding: 5px 10px; border-radius: 4px; cursor: pointer; }
+.btn-del { color: var(--red); background: none; border: none; cursor: pointer; font-size: 0.75rem; font-weight: bold; margin-left: 10px; }
+.del-small { position: absolute; top: 10px; right: 10px; background: none; color: var(--red); border: 1px solid var(--red); padding: 2px 5px; border-radius: 4px; font-size: 10px; cursor: pointer; }
+
+/* Tables */
+.worker-table { width: 100%; border-collapse: collapse; }
+.worker-table th { text-align: left; font-size: 0.8rem; color: #64748b; padding: 15px; border-bottom: 2px solid var(--gray-bg); }
+.worker-table td { padding: 15px; border-bottom: 1px solid var(--gray-bg); }
+
+.archive-item {
+    display: flex;
+    justify-content: space-between;
+    background: #f8fafc;
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    font-size: 0.9rem;
+}
