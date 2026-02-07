@@ -1,0 +1,57 @@
+from flask import Flask, request, jsonify
+from flask_cors import CORS
+from excel_handler import ExcelHandler
+from ai_engine import AIEngine
+
+app = Flask(__name__)
+CORS(app)
+
+# --- CONFIGURATION ---
+OPENAI_API_KEY = "your-key-here" 
+excel_handler = ExcelHandler()
+ai_engine = AIEngine(OPENAI_API_KEY)
+
+@app.route('/api/workers', methods=['GET'])
+def get_workers():
+    return jsonify(excel_handler.read_workers())
+
+@app.route('/api/tasks', methods=['GET'])
+def get_tasks():
+    return jsonify(excel_handler.read_tasks())
+
+@app.route('/api/add-worker', methods=['POST'])
+def add_worker():
+    data = request.json
+    excel_handler.add_worker(data['name'], data['job_title'], data['date_working'])
+    return jsonify({'success': True})
+
+@app.route('/api/add-task', methods=['POST'])
+def add_task():
+    data = request.json
+    excel_handler.add_task(data['urgency'], data['description'])
+    return jsonify({'success': True})
+
+@app.route('/api/complete-task', methods=['POST'])
+def complete_task():
+    data = request.json
+    # row_number is the key identifier in Excel
+    timestamp = excel_handler.update_task_completion(data['row_number'])
+    return jsonify({'success': True, 'timestamp': timestamp})
+
+@app.route('/api/assign-tasks', methods=['POST'])
+def assign_tasks():
+    workers = excel_handler.read_workers()
+    tasks = excel_handler.read_tasks()
+    
+    # AI determines which worker gets which task row
+    assignments = ai_engine.assign_tasks_to_workers(workers, tasks)
+    
+    # Write each assignment back to Excel
+    for worker_name, row_numbers in assignments.items():
+        for row_num in row_numbers:
+            excel_handler.assign_task_to_worker(row_num, worker_name)
+            
+    return jsonify({'success': True, 'assignments': assignments})
+
+if __name__ == '__main__':
+    app.run(debug=True, port=5000)

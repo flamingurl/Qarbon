@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Factory Task Manager - Manager</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Qarbon Task Manager</h1>
+            <p>Manager Dashboard</p>
+        </header>
+
+        <div class="manager-section">
+            <h2>AI Task Assignment</h2>
+            <p>Click to automatically assign all incomplete tasks to available workers based on roles, urgency, and availability.</p>
+            <button id="assignTasksBtn" class="btn-primary">🤖 AI Auto-Assign All Workers</button>
+            <div id="assignmentResults"></div>
+        </div>
+
+        <div class="manager-section">
+            <h2>Add New Worker</h2>
+            <form id="workerForm">
+                <input type="text" id="workerName" placeholder="Worker Name" required>
+                <input type="text" id="workerRole" placeholder="Job Title (e.g. Machinist)" required>
+                <input type="text" id="workerSchedule" placeholder="Schedule (e.g. 02/06 8am-4pm)" required>
+                <button type="submit" class="btn-primary" style="background: #4caf50;">Add Worker</button>
+            </form>
+        </div>
+
+        <div class="manager-section">
+            <h2>Add New Task</h2>
+            <form id="taskForm">
+                <input type="number" id="urgency" placeholder="Urgency (1-5)" min="1" max="5" required>
+                <input type="text" id="description" placeholder="Task Description" required>
+                <button type="submit" class="btn-primary">Add Task</button>
+            </form>
+        </div>
+
+        <div class="manager-section">
+            <h2>Current Tasks Overview</h2>
+            <div id="tasksOverview"></div>
+        </div>
+
+        <div class="manager-section">
+            <h2>Workers</h2>
+            <div id="workersOverview"></div>
+        </div>
+
+        <div class="info-box">
+            <h3>📋 How to Use</h3>
+            <ol>
+                <li>Add workers or update <code>data/workers.xlsx</code></li>
+                <li>Add tasks using the form above</li>
+                <li>Click "AI Auto-Assign" to distribute work to <b>all</b> available staff</li>
+                <li>Use "Mark Completed" below to update the Excel sheet timestamps</li>
+            </ol>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://127.0.0.1:5000/api';
+
+        // 1. AI Auto-assign (One-Click for all)
+        async function assignTasks() {
+            const btn = document.getElementById('assignTasksBtn');
+            btn.disabled = true;
+            btn.textContent = '🤖 AI Processing All Workers...';
+            
+            const response = await fetch(`${API_URL}/assign-tasks`, { method: 'POST' });
+            const result = await response.json();
+            
+            if (result.success) {
+                displayAssignmentResults(result.assignments);
+                loadTasks();
+            }
+            btn.disabled = false;
+            btn.textContent = '🤖 AI Auto-Assign All Workers';
+        }
+
+        function displayAssignmentResults(assignments) {
+            const results = document.getElementById('assignmentResults');
+            let html = '<div class="success-message"><h3>✓ AI Assignment Complete</h3><ul>';
+            for (const [worker, tasks] of Object.entries(assignments)) {
+                html += `<li><strong>${worker}:</strong> ${tasks.length} task(s)</li>`;
+            }
+            html += '</ul></div>';
+            results.innerHTML = html;
+        }
+
+        // 2. Load Tasks with "Mark Completed" Button
+        async function loadTasks() {
+            const response = await fetch(`${API_URL}/tasks`);
+            const tasks = await response.json();
+            const overview = document.getElementById('tasksOverview');
+            
+            const incomplete = tasks.filter(t => !t.date_completed);
+            const complete = tasks.filter(t => t.date_completed);
+
+            overview.innerHTML = `
+                <p><strong>Incomplete:</strong> ${incomplete.length} | <strong>Complete:</strong> ${complete.length}</p>
+                <div class="tasks-grid">
+                    ${tasks.map(t => `
+                        <div class="task-card">
+                            <div class="urgency" style="background: ${getUrgencyColor(t.urgency)}">${t.urgency}/5</div>
+                            <h4>${t.description}</h4>
+                            <p><strong>Assigned to:</strong> ${t.assigned_to || 'Unassigned'}</p>
+                            ${t.date_completed ? 
+                                `<p style="color:green; font-weight:bold;">✓ Done: ${t.date_completed}</p>` : 
+                                `<button onclick="markComplete(${t.row_number})" class="btn-complete" style="width:100%; margin-top:10px;">Mark Completed</button>`
+                            }
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+
+        // 3. The Completion Action
+        async function markComplete(rowNumber) {
+            const response = await fetch(`${API_URL}/complete-task`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ row_number: rowNumber })
+            });
+            if (response.ok) { loadTasks(); }
+        }
+
+        // 4. Load Workers Table
+        async function loadWorkers() {
+            const response = await fetch(`${API_URL}/workers`);
+            const workers = await response.json();
+            const overview = document.getElementById('workersOverview');
+            overview.innerHTML = `
+                <table>
+                    <thead><tr><th>Name</th><th>Role</th><th>Schedule</th></tr></thead>
+                    <tbody>
+                        ${workers.map(w => `<tr><td>${w.name}</td><td>${w.job_title}</td><td>${w.date_working}</td></tr>`).join('')}
+                    </tbody>
+                </table>`;
+        }
+
+        // 5. Form Submissions
+        document.getElementById('taskForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            await fetch(`${API_URL}/add-task`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    urgency: parseInt(document.getElementById('urgency').value), 
+                    description: document.getElementById('description').value 
+                })
+            });
+            e.target.reset();
+            loadTasks();
+        });
+
+        document.getElementById('workerForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            await fetch(`${API_URL}/add-worker`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    name: document.getElementById('workerName').value, 
+                    job_title: document.getElementById('workerRole').value,
+                    date_working: document.getElementById('workerSchedule').value
+                })
+            });
+            e.target.reset();
+            loadWorkers();
+        });
+
+        function getUrgencyColor(u) {
+            return ['#4caf50', '#8bc34a', '#ffc107', '#ff9800', '#f44336'][u - 1] || '#999';
+        }
+
+        document.getElementById('assignTasksBtn').addEventListener('click', assignTasks);
+        loadTasks();
+        loadWorkers();
+    </script>
+</body>
+</html>

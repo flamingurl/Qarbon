@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Factory Task Manager - Worker</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🏭 Factory Task Manager</h1>
+            <p>Worker Interface</p>
+        </header>
+
+        <div class="worker-selector">
+            <label for="workerSelect">Select Your Name:</label>
+            <select id="workerSelect">
+                <option value="">-- Select Worker --</option>
+            </select>
+        </div>
+
+        <div id="taskSection" style="display: none;">
+            <div class="current-task" id="currentTask">
+                <h2>Your Current Task</h2>
+                <div id="taskDetails"></div>
+                <button id="completeBtn" class="btn-complete">✓ Mark Complete</button>
+            </div>
+
+            <div class="next-task" id="nextTaskSection" style="display: none;">
+                <h2>Suggested Next Task</h2>
+                <div id="nextTaskDetails"></div>
+                <button id="acceptNextBtn" class="btn-accept">Accept Task</button>
+                <button id="viewAlternativesBtn" class="btn-alt">View Alternatives</button>
+            </div>
+
+            <div class="alternatives" id="alternativesSection" style="display: none;">
+                <h2>Alternative Tasks</h2>
+                <div id="alternativesList"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:5000/api';
+        let currentWorker = null;
+        let currentTask = null;
+
+        // Load workers on page load
+        async function loadWorkers() {
+            const response = await fetch(`${API_URL}/workers`);
+            const workers = await response.json();
+            
+            const select = document.getElementById('workerSelect');
+            workers.forEach(worker => {
+                const option = document.createElement('option');
+                option.value = worker.name;
+                option.textContent = `${worker.name} (${worker.job_title})`;
+                option.dataset.role = worker.job_title;
+                select.appendChild(option);
+            });
+        }
+
+        // Load worker's current task
+        async function loadWorkerTask() {
+            const response = await fetch(`${API_URL}/worker-tasks/${currentWorker.name}`);
+            const tasks = await response.json();
+            
+            if (tasks.length > 0) {
+                currentTask = tasks[0];
+                displayCurrentTask(currentTask);
+                document.getElementById('taskSection').style.display = 'block';
+            } else {
+                document.getElementById('taskDetails').innerHTML = '<p>No tasks assigned. Contact your manager.</p>';
+                document.getElementById('taskSection').style.display = 'block';
+                document.getElementById('completeBtn').style.display = 'none';
+            }
+        }
+
+        // Display current task
+        function displayCurrentTask(task) {
+            const urgencyColor = ['#4caf50', '#8bc34a', '#ffc107', '#ff9800', '#f44336'][task.urgency - 1];
+            document.getElementById('taskDetails').innerHTML = `
+                <div class="task-card">
+                    <div class="urgency" style="background: ${urgencyColor}">Urgency: ${task.urgency}/5</div>
+                    <h3>${task.description}</h3>
+                    <p><strong>Assigned:</strong> ${task.date_assigned}</p>
+                </div>
+            `;
+        }
+
+        // Mark task complete
+        async function completeTask() {
+            const btn = document.getElementById('completeBtn');
+            btn.disabled = true;
+            btn.textContent = 'Processing...';
+
+            const response = await fetch(`${API_URL}/complete-task`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    row_number: currentTask.row_number,
+                    worker_name: currentWorker.name,
+                    worker_role: currentWorker.role,
+                    description: currentTask.description
+                })
+            });
+
+            const result = await response.json();
+            
+            if (result.success) {
+                alert(`✓ Task completed at ${result.timestamp}`);
+                
+                if (result.next_task) {
+                    displayNextTask(result.next_task);
+                    displayAlternatives(result.alternative_tasks);
+                } else {
+                    alert('All tasks complete! Great job!');
+                    location.reload();
+                }
+            }
+        }
+
+        // Display suggested next task
+        function displayNextTask(task) {
+            document.getElementById('currentTask').style.display = 'none';
+            const urgencyColor = ['#4caf50', '#8bc34a', '#ffc107', '#ff9800', '#f44336'][task.urgency - 1];
+            
+            document.getElementById('nextTaskDetails').innerHTML = `
+                <div class="task-card">
+                    <div class="urgency" style="background: ${urgencyColor}">Urgency: ${task.urgency}/5</div>
+                    <h3>${task.description}</h3>
+                    <p><strong>AI Recommendation:</strong> Best match for your skills</p>
+                </div>
+            `;
+            
+            currentTask = task;
+            document.getElementById('nextTaskSection').style.display = 'block';
+        }
+
+        // Display alternative tasks
+        function displayAlternatives(tasks) {
+            const list = document.getElementById('alternativesList');
+            list.innerHTML = tasks.map(task => {
+                const urgencyColor = ['#4caf50', '#8bc34a', '#ffc107', '#ff9800', '#f44336'][task.urgency - 1];
+                return `
+                    <div class="task-card alternative-card" onclick="selectAlternative(${task.row_number})">
+                        <div class="urgency" style="background: ${urgencyColor}">Urgency: ${task.urgency}/5</div>
+                        <h4>${task.description}</h4>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Accept next task
+        function acceptNextTask() {
+            document.getElementById('nextTaskSection').style.display = 'none';
+            displayCurrentTask(currentTask);
+            document.getElementById('currentTask').style.display = 'block';
+            document.getElementById('alternativesSection').style.display = 'none';
+        }
+
+        // View alternatives
+        function viewAlternatives() {
+            document.getElementById('alternativesSection').style.display = 'block';
+        }
+
+        // Select alternative task
+        async function selectAlternative(rowNumber) {
+            const response = await fetch(`${API_URL}/tasks`);
+            const tasks = await response.json();
+            const task = tasks.find(t => t.row_number === rowNumber);
+            
+            if (task) {
+                currentTask = task;
+                document.getElementById('nextTaskSection').style.display = 'none';
+                document.getElementById('alternativesSection').style.display = 'none';
+                displayCurrentTask(currentTask);
+                document.getElementById('currentTask').style.display = 'block';
+            }
+        }
+
+        // Event listeners
+        document.getElementById('workerSelect').addEventListener('change', function() {
+            if (this.value) {
+                currentWorker = {
+                    name: this.value,
+                    role: this.options[this.selectedIndex].dataset.role
+                };
+                loadWorkerTask();
+            }
+        });
+
+        document.getElementById('completeBtn').addEventListener('click', completeTask);
+        document.getElementById('acceptNextBtn').addEventListener('click', acceptNextTask);
+        document.getElementById('viewAlternativesBtn').addEventListener('click', viewAlternatives);
+
+        // Initialize
+        loadWorkers();
+    </script>
+</body>
+</html>
