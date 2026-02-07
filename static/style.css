@@ -1,22 +1,187 @@
-:root { --main: #1e293b; --accent: #334155; --btn: #0f172a; --del: #991b1b; --done: #065f46; --border: #e2e8f0; }
-body { font-family: 'Segoe UI', system-ui, sans-serif; background: #f8fafc; color: var(--main); padding: 40px; margin: 0; }
-.container { max-width: 1200px; margin: 0 auto; }
-header { border-bottom: 3px solid var(--main); margin-bottom: 40px; padding-bottom: 10px; }
-h1 { margin: 0; font-size: 1.8rem; text-transform: uppercase; letter-spacing: 1px; }
-.manager-section { background: #fff; padding: 30px; margin-bottom: 30px; border-radius: 8px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); border: 1px solid var(--border); }
-h2 { margin-top: 0; font-size: 1.2rem; text-transform: uppercase; color: var(--accent); border-left: 5px solid var(--accent); padding-left: 15px; }
-.tasks-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
-.task-card { border: 1px solid var(--border); padding: 20px; border-radius: 8px; position: relative; background: #fff; }
-.urgency-label { font-weight: bold; font-size: 0.8rem; text-transform: uppercase; }
-.del-small { position: absolute; top: 10px; right: 10px; background: none; color: var(--del); border: 1px solid var(--del); cursor: pointer; padding: 4px 8px; border-radius: 4px; font-size: 11px; }
-.del-small:hover { background: var(--del); color: #fff; }
-.btn-primary { background: var(--btn); color: #fff; border: none; padding: 15px; width: 100%; cursor: pointer; border-radius: 6px; font-weight: bold; margin-top: 15px; transition: opacity 0.2s; }
-.btn-primary:hover { opacity: 0.9; }
-.btn-complete { background: var(--done); color: #fff; width: 100%; border: none; padding: 10px; cursor: pointer; margin-top: 15px; border-radius: 6px; font-weight: bold; }
-.btn-self { background: #3b82f6; color: #fff; border: none; padding: 6px 12px; cursor: pointer; border-radius: 4px; font-weight: bold; }
-.del-small-table { background: none; color: var(--del); border: 1px solid var(--del); padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 11px; }
-table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-th { background: #f1f5f9; text-align: left; padding: 15px; border-bottom: 2px solid var(--border); font-size: 0.9rem; }
-td { padding: 15px; border-bottom: 1px solid var(--border); }
-.completed-item { display: flex; justify-content: space-between; background: #f1f5f9; padding: 15px; margin-bottom: 10px; border-radius: 6px; border-left: 5px solid var(--accent); }
-input, select { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid var(--border); border-radius: 6px; font-size: 1rem; }
+/* Qarbon Aerospace Pro Theme */
+:root {
+    --primary: #0f172a;
+    --accent: #3b82f6;
+    --success: #10b981;
+    --danger: #ef4444;
+    --bg: #f8fafc;
+    --card: #ffffff;
+    --text-main: #1e293b;
+    --text-muted: #64748b;
+    --border: #e2e8f0;
+}
+
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background-color: var(--bg);
+    color: var(--text-main);
+    margin: 0;
+    padding: 40px 20px;
+    line-height: 1.5;
+}
+
+.container {
+    max-width: 1100px;
+    margin: 0 auto;
+}
+
+header {
+    margin-bottom: 48px;
+    padding-bottom: 20px;
+    border-bottom: 2px solid var(--border);
+}
+
+h1 {
+    font-size: 1.75rem;
+    font-weight: 800;
+    letter-spacing: -0.025em;
+    color: var(--primary);
+    text-transform: uppercase;
+}
+
+h2 {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--text-main);
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+}
+
+/* Glassmorphism/Card Style */
+.manager-section {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 32px;
+    margin-bottom: 32px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+/* Inputs & Forms */
+input, select {
+    width: 100%;
+    padding: 12px 16px;
+    margin: 8px 0 20px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 0.95rem;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+input:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* Professional Buttons */
+.btn-primary {
+    background: var(--primary);
+    color: white;
+    font-weight: 600;
+    padding: 14px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    width: 100%;
+    transition: background 0.2s;
+}
+
+.btn-primary:hover {
+    background: #1e293b;
+}
+
+/* Task Cards */
+.tasks-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 24px;
+}
+
+.task-card {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+    position: relative;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+}
+
+.urgency-label {
+    font-size: 0.7rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 8px;
+}
+
+.task-card h3 {
+    margin: 0 0 12px 0;
+    font-size: 1.1rem;
+}
+
+.btn-complete {
+    background: var(--success);
+    color: white;
+    width: 100%;
+    padding: 10px;
+    border: none;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 16px;
+}
+
+/* Table Refinement */
+table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+th {
+    text-align: left;
+    background: #f8fafc;
+    padding: 12px 16px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    border-bottom: 1px solid var(--border);
+}
+
+td {
+    padding: 16px;
+    border-bottom: 1px solid var(--border);
+    font-size: 0.95rem;
+}
+
+/* Archive List */
+.completed-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    background: #f1f5f9;
+    border-radius: 8px;
+    margin-bottom: 8px;
+}
+
+.completed-item span {
+    font-weight: 500;
+    font-size: 0.9rem;
+}
+
+.completed-item small {
+    color: var(--text-muted);
+}
+
+.del-small {
+    background: transparent;
+    border: 1px solid var(--danger);
+    color: var(--danger);
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.7rem;
+    cursor: pointer;
+}
