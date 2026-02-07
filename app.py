@@ -33,3 +33,11 @@ if __name__ == '__main__':
     # Use port assigned by the host, default to 5000
     port = int(os.environ.get("PORT", 5000))
     app.run(host='0.0.0.0', port=port)
+    
+@app.route('/')
+def serve_index():
+    return send_from_directory('static', 'index.html')
+
+@app.route('/manager')
+def serve_manager():
+    return send_from_directory('static', 'manager.html')
