@@ -12,68 +12,49 @@ class ExcelHandler:
 
     def _ensure_files_exist(self):
         os.makedirs(os.path.dirname(self.workers_file), exist_ok=True)
-        if not os.path.exists(self.workers_file):
-            wb = Workbook()
-            ws = wb.active
-            ws.title = "Workers"
-            ws.append(['Name', 'Job Title', 'Date Working'])
-            wb.save(self.workers_file)
-        
-        if not os.path.exists(self.tasks_file):
-            wb = Workbook()
-            ws = wb.active
-            ws.title = "Tasks"
-            ws.append(['Urgency', 'Task Description', 'Date Assigned', 'Date Completed', 'Assigned To'])
-            wb.save(self.tasks_file)
+        for file, headers in [(self.workers_file, ['Name', 'Job Title', 'Date Working']), 
+                             (self.tasks_file, ['Urgency', 'Task Description', 'Date Assigned', 'Date Completed', 'Assigned To'])]:
+            if not os.path.exists(file):
+                wb = Workbook()
+                ws = wb.active
+                ws.append(headers)
+                wb.save(file)
 
     def read_workers(self):
         wb = load_workbook(self.workers_file)
-        ws = wb.active
-        workers = []
-        for row in ws.iter_rows(min_row=2, values_only=True):
-            if row[0]:
-                workers.append({'name': row[0], 'job_title': row[1], 'date_working': row[2]})
-        return workers
+        return [{'name': r[0], 'job_title': r[1], 'date_working': r[2]} for r in wb.active.iter_rows(min_row=2, values_only=True) if r[0]]
 
     def read_tasks(self):
         wb = load_workbook(self.tasks_file)
-        ws = wb.active
-        tasks = []
-        for idx, row in enumerate(ws.iter_rows(min_row=2, values_only=True), start=2):
-            if row[1]:
-                tasks.append({
-                    'row_number': idx,
-                    'urgency': row[0],
-                    'description': row[1],
-                    'date_assigned': row[2],
-                    'date_completed': row[3],
-                    'assigned_to': row[4]
-                })
-        return tasks
+        return [{'row_number': i, 'urgency': r[0], 'description': r[1], 'date_assigned': r[2], 'date_completed': r[3], 'assigned_to': r[4]} 
+                for i, r in enumerate(wb.active.iter_rows(min_row=2, values_only=True), start=2) if r[1]]
 
     def update_task_completion(self, row_number):
         wb = load_workbook(self.tasks_file)
-        ws = wb.active
-        timestamp = datetime.now().strftime('%m/%d/%Y %I:%M %p')
-        ws.cell(row=int(row_number), column=4, value=timestamp)
+        wb.active.cell(row=int(row_number), column=4, value=datetime.now().strftime('%m/%d/%Y %I:%M %p'))
         wb.save(self.tasks_file)
-        return timestamp
 
     def assign_task_to_worker(self, row_number, worker_name):
         wb = load_workbook(self.tasks_file)
-        ws = wb.active
-        ws.cell(row=int(row_number), column=5, value=worker_name)
+        wb.active.cell(row=int(row_number), column=5, value=worker_name)
         wb.save(self.tasks_file)
 
-    def add_worker(self, name, job_title, date_working):
+    def delete_task(self, row_number):
+        wb = load_workbook(self.tasks_file)
+        wb.active.delete_rows(int(row_number))
+        wb.save(self.tasks_file)
+
+    def delete_worker(self, name):
         wb = load_workbook(self.workers_file)
         ws = wb.active
-        ws.append([name, job_title, date_working])
+        for row in range(2, ws.max_row + 1):
+            if ws.cell(row=row, column=1).value == name:
+                ws.delete_rows(row)
+                break
         wb.save(self.workers_file)
 
+    def add_worker(self, name, job_title, date_working):
+        wb = load_workbook(self.workers_file); wb.active.append([name, job_title, date_working]); wb.save(self.workers_file)
+
     def add_task(self, urgency, description):
-        wb = load_workbook(self.tasks_file)
-        ws = wb.active
-        date_assigned = datetime.now().strftime('%m/%d/%Y')
-        ws.append([urgency, description, date_assigned, '', ''])
-        wb.save(self.tasks_file)
+        wb = load_workbook(self.tasks_file); wb.active.append([urgency, description, datetime.now().strftime('%m/%d/%Y'), '', '']); wb.save(self.tasks_file)

@@ -2,177 +2,108 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Qarbon Aerospace Task Assignment Manager</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="container">
-        <header>
-            <h1>Qarbon Aerospace Task Assignment Manager</h1>
-        </header>
+        <h1>Qarbon Aerospace Task Assignment Manager</h1>
+        
+        <div class="manager-section">
+            <h2>AI Auto-Assignment (One per Person)</h2>
+            <button id="assignBtn" class="btn-primary">Optimize Shift Assignments</button>
+        </div>
 
-        <section class="manager-section">
-            <h2>AI Auto-Assignment</h2>
-            <p>Distribute all incomplete tasks based on worker roles and task urgency.</p>
-            <button id="assignBtn" class="btn-primary">Assign All Available Workers</button>
-            <div id="assignmentResults"></div>
-        </section>
-
-        <section class="manager-section">
-            <h2>Add New Worker</h2>
-            <form id="workerForm">
-                <input type="text" id="workerName" placeholder="Full Name" required>
-                <input type="text" id="workerRole" placeholder="Job Title (e.g. Machinist)" required>
-                <input type="text" id="workerSchedule" placeholder="Schedule (e.g. 08:00 - 17:00)" required>
-                <button type="submit" class="btn-primary" style="background: #10b981;">Register Worker</button>
-            </form>
-        </section>
-
-        <section class="manager-section">
-            <h2>Add New Task</h2>
+        <div class="manager-section">
+            <h2>Add Task</h2>
             <form id="taskForm">
-                <input type="text" id="desc" placeholder="Task Description" required>
-                <select id="urg">
-                    <option value="1">Urgency 1 (Low)</option>
-                    <option value="2">Urgency 2</option>
-                    <option value="3" selected>Urgency 3 (Medium)</option>
-                    <option value="4">Urgency 4</option>
-                    <option value="5">Urgency 5 (Critical)</option>
-                </select>
-                <button type="submit" class="btn-primary">Add Task</button>
+                <input type="text" id="desc" placeholder="Task description" required>
+                <input type="number" id="urg" placeholder="Urgency (1-5)" min="1" max="5" required>
+                <button type="submit" class="btn-primary">Submit Task</button>
             </form>
-        </section>
+        </div>
 
-        <section class="manager-section">
+        <div class="manager-section">
             <h2>Active Tasks</h2>
             <div id="activeTasks" class="tasks-grid"></div>
-        </section>
+        </div>
 
-        <section class="manager-section">
-            <h2>Registered Workers</h2>
+        <div class="manager-section">
+            <h2>Registered Personnel</h2>
             <div id="workersOverview"></div>
-        </section>
+        </div>
 
-        <section class="manager-section">
-            <h2>Completed Tasks</h2>
+        <div class="manager-section">
+            <h2>Completed Task Archive</h2>
             <div id="completedTasks" class="completed-list"></div>
-        </section>
+        </div>
     </div>
 
     <script>
         const API_URL = window.location.origin + '/api';
 
-        // Load both Workers and Tasks
         async function loadData() {
-            try {
-                const [tasksRes, workersRes] = await Promise.all([
-                    fetch(`${API_URL}/tasks`),
-                    fetch(`${API_URL}/workers`)
-                ]);
-
-                const tasks = await tasksRes.json();
-                const workers = await workersRes.json();
-                
-                renderTasks(tasks);
-                renderWorkers(workers);
-            } catch (err) { console.error("Data Load Error:", err); }
-        }
-
-        function renderTasks(tasks) {
-            const activeContainer = document.getElementById('activeTasks');
-            const completeContainer = document.getElementById('completedTasks');
+            const [tRes, wRes] = await Promise.all([fetch(`${API_URL}/tasks`), fetch(`${API_URL}/workers`)]);
+            const tasks = await tRes.json();
+            const workers = await wRes.json();
             
-            const active = tasks.filter(t => !t.date_completed);
-            const completed = tasks.filter(t => t.date_completed);
-
-            activeContainer.innerHTML = active.map(t => `
+            document.getElementById('activeTasks').innerHTML = tasks.filter(t => !t.date_completed).map(t => `
                 <div class="task-card">
-                    <div class="urgency-badge" style="background:${getUrgencyColor(t.urgency)}">
-                        Urgency ${t.urgency}
-                    </div>
+                    <button class="del-small" onclick="deleteItem('task', ${t.row_number})">X</button>
                     <h3>${t.description}</h3>
-                    <p>Assigned to: <b>${t.assigned_to || 'Unassigned'}</b></p>
-                    <button onclick="markComplete(${t.row_number})" class="btn-complete">Mark as Completed</button>
-                </div>
-            `).join('');
+                    <p>Assignee: ${t.assigned_to || 'Unassigned'}</p>
+                    <button class="btn-complete" onclick="markComplete(${t.row_number})">Complete</button>
+                </div>`).join('');
 
-            completeContainer.innerHTML = completed.map(t => `
-                <div class="completed-item">
-                    <span>${t.description} (Worker: ${t.assigned_to})</span>
-                    <small>Completed: ${t.date_completed}</small>
-                </div>
-            `).join('');
+            document.getElementById('completedTasks').innerHTML = tasks.filter(t => t.date_completed).map(t => `
+                <div class="completed-item"><span>${t.description} (${t.assigned_to})</span><small>${t.date_completed}</small></div>`).join('');
+
+            document.getElementById('workersOverview').innerHTML = `<table>
+                <thead><tr><th>Name</th><th>Role</th><th>Actions</th></tr></thead>
+                <tbody>${workers.map(w => `
+                    <tr><td>${w.name}</td><td>${w.job_title}</td>
+                    <td><button onclick="assignSelf('${w.name}')" class="btn-self">Assign Task</button>
+                    <button onclick="deleteItem('worker', '${w.name}')" class="del-small">Remove</button></td></tr>`).join('')}
+                </tbody></table>`;
         }
 
-        function renderWorkers(workers) {
-            const container = document.getElementById('workersOverview');
-            if (workers.length === 0) {
-                container.innerHTML = "<p>No workers registered.</p>";
-                return;
-            }
-            container.innerHTML = `
-                <table>
-                    <thead>
-                        <tr><th>Name</th><th>Role</th><th>Schedule</th></tr>
-                    </thead>
-                    <tbody>
-                        ${workers.map(w => `
-                            <tr><td>${w.name}</td><td>${w.job_title}</td><td>${w.date_working}</td></tr>
-                        `).join('')}
-                    </tbody>
-                </table>`;
+        async function deleteItem(type, id) {
+            await fetch(`${API_URL}/delete-${type}/${id}`, { method: 'DELETE' });
+            loadData();
+        }
+
+        async function assignSelf(name) {
+            await fetch(`${API_URL}/assign-self`, { 
+                method: 'POST', 
+                headers: {'Content-Type': 'application/json'}, 
+                body: JSON.stringify({worker_name: name}) 
+            });
+            loadData();
         }
 
         async function markComplete(row) {
-            await fetch(`${API_URL}/complete-task`, {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({row_number: row})
+            await fetch(`${API_URL}/complete-task`, { 
+                method: 'POST', 
+                headers: {'Content-Type': 'application/json'}, 
+                body: JSON.stringify({row_number: row}) 
             });
             loadData();
         }
 
         document.getElementById('taskForm').onsubmit = async (e) => {
             e.preventDefault();
-            await fetch(`${API_URL}/add-task`, {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({
-                    description: document.getElementById('desc').value, 
-                    urgency: document.getElementById('urg').value
-                })
+            await fetch(`${API_URL}/add-task`, { 
+                method: 'POST', 
+                headers: {'Content-Type': 'application/json'}, 
+                body: JSON.stringify({description: document.getElementById('desc').value, urgency: document.getElementById('urg').value}) 
             });
-            e.target.reset();
-            loadData();
-        };
-
-        document.getElementById('workerForm').onsubmit = async (e) => {
-            e.preventDefault();
-            await fetch(`${API_URL}/add-worker`, {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({
-                    name: document.getElementById('workerName').value,
-                    job_title: document.getElementById('workerRole').value,
-                    date_working: document.getElementById('workerSchedule').value
-                })
-            });
-            e.target.reset();
             loadData();
         };
 
         document.getElementById('assignBtn').onclick = async () => {
-            const btn = document.getElementById('assignBtn');
-            btn.innerText = "AI Processing Assignments...";
-            await fetch(`${API_URL}/assign-tasks`, {method: 'POST'});
-            btn.innerText = "Assign All Available Workers";
+            await fetch(`${API_URL}/assign-tasks`, { method: 'POST' });
             loadData();
         };
-
-        function getUrgencyColor(u) {
-            return ['#10b981', '#84cc16', '#f59e0b', '#f97316', '#ef4444'][u-1] || '#94a3b8';
-        }
 
         loadData();
     </script>
