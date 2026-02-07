@@ -1,112 +1,128 @@
-/* Industrial Professional Theme */
 :root {
-    --primary: #4f46e5;
+    --primary: #1e293b;
+    --accent: #4f46e5;
     --success: #10b981;
-    --bg: #f8fafc;
-    --card-bg: #ffffff;
-    --text: #1e293b;
+    --bg: #f1f5f9;
+    --white: #ffffff;
 }
 
 body {
-    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     background-color: var(--bg);
-    color: var(--text);
+    color: var(--primary);
     margin: 0;
     padding: 20px;
 }
 
 .container {
-    max-width: 1000px;
+    max-width: 1100px;
     margin: 0 auto;
 }
 
 header {
     text-align: center;
+    border-bottom: 2px solid var(--primary);
     margin-bottom: 40px;
+    padding-bottom: 10px;
 }
 
 .manager-section {
-    background: var(--card-bg);
-    padding: 25px;
-    border-radius: 12px;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-    margin-bottom: 30px;
+    background: var(--white);
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    margin-bottom: 25px;
 }
 
-/* Task Grid */
+h2 {
+    margin-top: 0;
+    border-left: 4px solid var(--accent);
+    padding-left: 15px;
+    font-size: 1.4rem;
+}
+
+/* Tasks Display */
 .tasks-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
     gap: 20px;
 }
 
 .task-card {
-    background: white;
     border: 1px solid #e2e8f0;
-    border-radius: 12px;
     padding: 20px;
-    position: relative;
-    transition: transform 0.2s;
-}
-
-.task-card:hover {
-    transform: translateY(-4px);
+    border-radius: 6px;
+    background: #fff;
 }
 
 .urgency-badge {
+    color: #fff;
+    padding: 3px 10px;
+    font-size: 0.8rem;
+    font-weight: bold;
+    border-radius: 4px;
     display: inline-block;
-    padding: 4px 12px;
-    border-radius: 20px;
-    font-size: 0.75rem;
-    font-weight: 700;
-    color: white;
-    margin-bottom: 10px;
 }
 
-/* Completed List (Minimalist) */
-.completed-list {
-    margin-top: 20px;
-    border-top: 2px solid #e2e8f0;
-    padding-top: 20px;
+/* Worker Table */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
 }
 
+th {
+    background: var(--primary);
+    color: #fff;
+    text-align: left;
+    padding: 12px;
+}
+
+td {
+    padding: 12px;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+/* Completed List */
 .completed-item {
+    padding: 12px;
+    background: #f8fafc;
+    border-left: 4px solid #cbd5e1;
+    margin-bottom: 10px;
     display: flex;
     justify-content: space-between;
-    padding: 10px;
-    background: #f1f5f9;
-    border-radius: 6px;
-    margin-bottom: 8px;
-    font-size: 0.9rem;
-    color: #64748b;
+    font-size: 0.95rem;
 }
 
-/* Buttons */
-.btn-primary {
-    background: var(--primary);
-    color: white;
-    border: none;
-    padding: 12px 24px;
-    border-radius: 8px;
-    font-weight: 600;
-    cursor: pointer;
+/* Global Elements */
+input, select {
     width: 100%;
+    padding: 12px;
+    margin: 10px 0;
+    border: 1px solid #cbd5e1;
+    border-radius: 4px;
+    box-sizing: border-box;
+}
+
+.btn-primary {
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    padding: 14px;
+    width: 100%;
+    font-weight: bold;
+    cursor: pointer;
+    border-radius: 4px;
+    text-transform: uppercase;
 }
 
 .btn-complete {
     background: var(--success);
-    color: white;
+    color: #fff;
     border: none;
-    padding: 8px 16px;
-    border-radius: 6px;
+    padding: 10px;
+    width: 100%;
     cursor: pointer;
     margin-top: 10px;
-}
-
-input, select {
-    width: 100%;
-    padding: 10px;
-    margin: 10px 0;
-    border: 1px solid #cbd5e1;
-    border-radius: 6px;
+    border-radius: 4px;
 }

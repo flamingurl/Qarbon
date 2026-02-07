@@ -3,24 +3,36 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Factory Manager Dashboard</title>
+    <title>Qarbon Aerospace Task Assignment Manager</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="container">
         <header>
-            <h1>🏭 Factory Manager Dashboard</h1>
+            <h1>Qarbon Aerospace Task Assignment Manager</h1>
         </header>
 
-        <div class="manager-section">
-            <h2>🤖 AI Auto-Assignment</h2>
+        <section class="manager-section">
+            <h2>AI Auto-Assignment</h2>
+            <p>Distribute all incomplete tasks based on worker roles and task urgency.</p>
             <button id="assignBtn" class="btn-primary">Assign All Available Workers</button>
-        </div>
+            <div id="assignmentResults"></div>
+        </section>
 
-        <div class="manager-section">
-            <h2>➕ Add New Task</h2>
+        <section class="manager-section">
+            <h2>Add New Worker</h2>
+            <form id="workerForm">
+                <input type="text" id="workerName" placeholder="Full Name" required>
+                <input type="text" id="workerRole" placeholder="Job Title (e.g. Machinist)" required>
+                <input type="text" id="workerSchedule" placeholder="Schedule (e.g. 08:00 - 17:00)" required>
+                <button type="submit" class="btn-primary" style="background: #10b981;">Register Worker</button>
+            </form>
+        </section>
+
+        <section class="manager-section">
+            <h2>Add New Task</h2>
             <form id="taskForm">
-                <input type="text" id="desc" placeholder="What needs to be done?" required>
+                <input type="text" id="desc" placeholder="Task Description" required>
                 <select id="urg">
                     <option value="1">Urgency 1 (Low)</option>
                     <option value="2">Urgency 2</option>
@@ -28,57 +40,88 @@
                     <option value="4">Urgency 4</option>
                     <option value="5">Urgency 5 (Critical)</option>
                 </select>
-                <button type="submit" class="btn-primary" style="background:#6366f1">Add Task</button>
+                <button type="submit" class="btn-primary">Add Task</button>
             </form>
-        </div>
+        </section>
 
-        <div class="manager-section">
-            <h2>📋 Active Tasks</h2>
+        <section class="manager-section">
+            <h2>Active Tasks</h2>
             <div id="activeTasks" class="tasks-grid"></div>
-        </div>
+        </section>
 
-        <div class="manager-section">
-            <h2>✅ Completed Tasks</h2>
+        <section class="manager-section">
+            <h2>Registered Workers</h2>
+            <div id="workersOverview"></div>
+        </section>
+
+        <section class="manager-section">
+            <h2>Completed Tasks</h2>
             <div id="completedTasks" class="completed-list"></div>
-        </div>
+        </section>
     </div>
 
     <script>
         const API_URL = window.location.origin + '/api';
 
-        async function loadTasks() {
+        // Load both Workers and Tasks
+        async function loadData() {
             try {
-                const res = await fetch(`${API_URL}/tasks`);
-                const tasks = await res.json();
+                const [tasksRes, workersRes] = await Promise.all([
+                    fetch(`${API_URL}/tasks`),
+                    fetch(`${API_URL}/workers`)
+                ]);
+
+                const tasks = await tasksRes.json();
+                const workers = await workersRes.json();
                 
-                const activeContainer = document.getElementById('activeTasks');
-                const completeContainer = document.getElementById('completedTasks');
-                
-                // Separate tasks
-                const active = tasks.filter(t => !t.date_completed);
-                const completed = tasks.filter(t => t.date_completed);
+                renderTasks(tasks);
+                renderWorkers(workers);
+            } catch (err) { console.error("Data Load Error:", err); }
+        }
 
-                // Render Active Cards
-                activeContainer.innerHTML = active.map(t => `
-                    <div class="task-card">
-                        <div class="urgency-badge" style="background:${getUrgencyColor(t.urgency)}">
-                            Priority ${t.urgency}
-                        </div>
-                        <h3>${t.description}</h3>
-                        <p>👤 <b>${t.assigned_to || 'Waiting for AI...'}</b></p>
-                        <button onclick="markComplete(${t.row_number})" class="btn-complete">Mark Done</button>
+        function renderTasks(tasks) {
+            const activeContainer = document.getElementById('activeTasks');
+            const completeContainer = document.getElementById('completedTasks');
+            
+            const active = tasks.filter(t => !t.date_completed);
+            const completed = tasks.filter(t => t.date_completed);
+
+            activeContainer.innerHTML = active.map(t => `
+                <div class="task-card">
+                    <div class="urgency-badge" style="background:${getUrgencyColor(t.urgency)}">
+                        Urgency ${t.urgency}
                     </div>
-                `).join('');
+                    <h3>${t.description}</h3>
+                    <p>Assigned to: <b>${t.assigned_to || 'Unassigned'}</b></p>
+                    <button onclick="markComplete(${t.row_number})" class="btn-complete">Mark as Completed</button>
+                </div>
+            `).join('');
 
-                // Render Minimal Completed List
-                completeContainer.innerHTML = completed.map(t => `
-                    <div class="completed-item">
-                        <span><b>✓</b> ${t.description} (Assigned to: ${t.assigned_to})</span>
-                        <small>Completed: ${t.date_completed}</small>
-                    </div>
-                `).join('');
+            completeContainer.innerHTML = completed.map(t => `
+                <div class="completed-item">
+                    <span>${t.description} (Worker: ${t.assigned_to})</span>
+                    <small>Completed: ${t.date_completed}</small>
+                </div>
+            `).join('');
+        }
 
-            } catch (err) { console.error("Error loading tasks:", err); }
+        function renderWorkers(workers) {
+            const container = document.getElementById('workersOverview');
+            if (workers.length === 0) {
+                container.innerHTML = "<p>No workers registered.</p>";
+                return;
+            }
+            container.innerHTML = `
+                <table>
+                    <thead>
+                        <tr><th>Name</th><th>Role</th><th>Schedule</th></tr>
+                    </thead>
+                    <tbody>
+                        ${workers.map(w => `
+                            <tr><td>${w.name}</td><td>${w.job_title}</td><td>${w.date_working}</td></tr>
+                        `).join('')}
+                    </tbody>
+                </table>`;
         }
 
         async function markComplete(row) {
@@ -87,38 +130,51 @@
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({row_number: row})
             });
-            loadTasks();
+            loadData();
         }
 
         document.getElementById('taskForm').onsubmit = async (e) => {
             e.preventDefault();
-            const desc = document.getElementById('desc').value;
-            const urg = document.getElementById('urg').value;
-            
             await fetch(`${API_URL}/add-task`, {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({description: desc, urgency: urg})
+                body: JSON.stringify({
+                    description: document.getElementById('desc').value, 
+                    urgency: document.getElementById('urg').value
+                })
             });
             e.target.reset();
-            loadTasks();
+            loadData();
+        };
+
+        document.getElementById('workerForm').onsubmit = async (e) => {
+            e.preventDefault();
+            await fetch(`${API_URL}/add-worker`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    name: document.getElementById('workerName').value,
+                    job_title: document.getElementById('workerRole').value,
+                    date_working: document.getElementById('workerSchedule').value
+                })
+            });
+            e.target.reset();
+            loadData();
         };
 
         document.getElementById('assignBtn').onclick = async () => {
             const btn = document.getElementById('assignBtn');
-            btn.innerText = "🤖 AI analyzing worker roles...";
+            btn.innerText = "AI Processing Assignments...";
             await fetch(`${API_URL}/assign-tasks`, {method: 'POST'});
             btn.innerText = "Assign All Available Workers";
-            loadTasks();
+            loadData();
         };
 
         function getUrgencyColor(u) {
             return ['#10b981', '#84cc16', '#f59e0b', '#f97316', '#ef4444'][u-1] || '#94a3b8';
         }
 
-        loadTasks();
-        // Refresh data every 30 seconds automatically
-        setInterval(loadTasks, 30000);
+        loadData();
     </script>
 </body>
 </html>
