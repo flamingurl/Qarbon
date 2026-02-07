@@ -5,14 +5,13 @@ import os
 
 class ExcelHandler:
     def __init__(self, workers_file='data/workers.xlsx', tasks_file='data/tasks.xlsx'):
-    # This finds the absolute path to your current folder
-    base_dir = os.path.dirname(os.path.abspath(__file__))
-    self.workers_file = os.path.join(base_dir, 'data', 'workers.xlsx')
-    self.tasks_file = os.path.join(base_dir, 'data', 'tasks.xlsx')
-    self._ensure_files_exist()
-    
+        base_dir = os.path.dirname(os.path.abspath(__file__))
+        self.workers_file = os.path.join(base_dir, 'data', 'workers.xlsx')
+        self.tasks_file = os.path.join(base_dir, 'data', 'tasks.xlsx')
+        self._ensure_files_exist()
+
     def _ensure_files_exist(self):
-        os.makedirs('data', exist_ok=True)
+        os.makedirs(os.path.dirname(self.workers_file), exist_ok=True)
         if not os.path.exists(self.workers_file):
             wb = Workbook()
             ws = wb.active
@@ -56,14 +55,14 @@ class ExcelHandler:
         wb = load_workbook(self.tasks_file)
         ws = wb.active
         timestamp = datetime.now().strftime('%m/%d/%Y %I:%M %p')
-        ws.cell(row=row_number, column=4, value=timestamp) # Column 4 is Date Completed
+        ws.cell(row=int(row_number), column=4, value=timestamp)
         wb.save(self.tasks_file)
         return timestamp
 
     def assign_task_to_worker(self, row_number, worker_name):
         wb = load_workbook(self.tasks_file)
         ws = wb.active
-        ws.cell(row=row_number, column=5, value=worker_name) # Column 5 is Assigned To
+        ws.cell(row=int(row_number), column=5, value=worker_name)
         wb.save(self.tasks_file)
 
     def add_worker(self, name, job_title, date_working):
