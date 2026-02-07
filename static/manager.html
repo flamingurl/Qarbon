@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Qarbon Aerospace | Task Assignment Manager</title>
+    <title>Qarbon Aerospace | Task Manager</title>
     <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
@@ -24,10 +24,10 @@
             <div class="manager-section">
                 <h2>Personnel Registration</h2>
                 <form id="workerForm">
-                    <input type="text" id="workerName" placeholder="Full Name" required>
-                    <input type="text" id="workerRole" placeholder="Job Title" required>
+                    <input type="text" id="workerName" placeholder="Worker Full Name" required>
+                    <input type="text" id="workerRole" placeholder="Job Title (e.g., Lead Machinist)" required>
                     <input type="text" id="workerSchedule" placeholder="Shift (e.g. 0800-1600)" required>
-                    <button type="submit" class="btn-primary" style="width:100%">Register Personnel</button>
+                    <button type="submit" class="btn-primary" style="width:100%; background:#10b981">Register Personnel</button>
                 </form>
             </div>
 
@@ -35,13 +35,7 @@
                 <h2>Task Intake</h2>
                 <form id="taskForm">
                     <input type="text" id="desc" placeholder="Task Description" required>
-                    <select id="urg">
-                        <option value="1">Urgency 1 (Low)</option>
-                        <option value="2">Urgency 2</option>
-                        <option value="3" selected>Urgency 3 (Medium)</option>
-                        <option value="4">Urgency 4</option>
-                        <option value="5">Urgency 5 (Critical)</option>
-                    </select>
+                    <input type="number" id="urg" placeholder="Urgency (1-5)" min="1" max="5" required>
                     <button type="submit" class="btn-primary" style="width:100%">Log New Task</button>
                 </form>
             </div>
@@ -72,40 +66,58 @@
             const tasks = await tRes.json();
             const workers = await wRes.json();
             
-            // Render Active Tasks
-            document.getElementById('activeTasks').innerHTML = tasks.filter(t => !t.date_completed).map(t => `
+            // 1. Render Active Tasks
+            const active = tasks.filter(t => !t.date_completed);
+            document.getElementById('activeTasks').innerHTML = active.map(t => `
                 <div class="task-card">
-                    <button class="del-btn" style="float:right" onclick="deleteItem('task', ${t.row_number})">REMOVE</button>
+                    <button class="del-small" onclick="deleteItem('task', ${t.row_number})">Delete</button>
                     <span class="urgency-indicator" style="color:${getUrgencyColor(t.urgency)}">Priority ${t.urgency}</span>
                     <h3 style="margin: 0.5rem 0">${t.description}</h3>
                     <p style="font-size:0.85rem; color:#64748b">Assigned: <b>${t.assigned_to || 'Pending'}</b></p>
-                    <button class="btn-complete" onclick="markComplete(${t.row_number})">MARK AS COMPLETED</button>
+                    <button class="btn-complete" onclick="markComplete(${t.row_number})">Mark as Completed</button>
                 </div>`).join('');
 
-            // Render Archive
+            // 2. Render Archive
             document.getElementById('completedTasks').innerHTML = tasks.filter(t => t.date_completed).map(t => `
                 <div class="completed-item">
                     <span><b>FINISHED:</b> ${t.description} (${t.assigned_to})</span>
-                    <small>${t.date_completed}</small>
+                    <small>${t.date_completed} EST</small>
                 </div>`).join('');
 
-            // Render Worker Table
+            // 3. Render Worker Table with Status Tracking
+            const assignedNames = new Set(active.map(t => t.assigned_to).filter(name => name));
+
             document.getElementById('workersOverview').innerHTML = `<table>
-                <thead><tr><th>Name</th><th>Role</th><th>Actions</th></tr></thead>
-                <tbody>${workers.map(w => `
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Role</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>${workers.map(w => {
+                    const isAssigned = assignedNames.has(w.name);
+                    return `
                     <tr>
                         <td><b>${w.name}</b></td>
                         <td>${w.job_title}</td>
                         <td>
-                            <button onclick="assignSelf('${w.name}')" class="btn-self">ASSIGN NEXT</button>
-                            <button onclick="deleteItem('worker', '${w.name}')" class="del-btn" style="margin-left:10px">DELETE</button>
+                            <span class="status-badge ${isAssigned ? 'status-assigned' : 'status-unassigned'}">
+                                ${isAssigned ? 'ASSIGNED' : 'UNASSIGNED'}
+                            </span>
                         </td>
-                    </tr>`).join('')}
+                        <td>
+                            <button onclick="assignSelf('${w.name}')" class="btn-self">ASSIGN NEXT</button>
+                            <button onclick="deleteItem('worker', '${w.name}')" class="del-btn-table">REMOVE</button>
+                        </td>
+                    </tr>`;
+                }).join('')}
                 </tbody></table>`;
         }
 
         async function deleteItem(type, id) {
-            if(!confirm(`Delete this ${type}?`)) return;
+            if(!confirm(`Confirm deletion of ${type}?`)) return;
             await fetch(`${API_URL}/delete-${type}/${id}`, { method: 'DELETE' });
             loadData();
         }
@@ -156,11 +168,11 @@
 
         document.getElementById('assignBtn').onclick = async () => {
             const btn = document.getElementById('assignBtn');
-            btn.innerText = "OPTIMIZING...";
+            btn.innerText = "AI OPTIMIZING...";
             await fetch(`${API_URL}/assign-tasks`, { method: 'POST' });
             btn.innerText = "EXECUTE AI OPTIMIZED SHIFT ASSIGNMENT";
             loadData();
-        };
+        }
 
         function getUrgencyColor(u) {
             return ['#10b981', '#84cc16', '#f59e0b', '#f97316', '#ef4444'][u-1];
